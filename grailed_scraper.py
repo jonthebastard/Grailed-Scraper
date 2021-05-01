@@ -11,6 +11,8 @@ import pandas as pd
 import os
 from urllib.error import HTTPError
 import argparse
+import pathlib
+from pathlib import Path
 
 # Handle arguments
 parser = argparse.ArgumentParser()
@@ -27,38 +29,42 @@ search_term = args.search
 img_width = args.width if args.width > 0 else None
 img_height = args.height if args.height > 0 else None
 target = args.num if args.num > 0 else 1000
+output_path = os.path.join(pathlib.Path(__file__).parent.absolute(), "output")
 
 # Welcome :)
 print("Hi there! " + str(target) + " listing images for '" + search_term + "' coming right up <3")
+Path(__file__).parent.resolve()
+if not os.path.exists(output_path):
+    os.makedirs(output_path)
 
 # Scrape images from Grailed query with optional image width/height parameters
 def GrailedScraper(search_term, img_width, img_height, target):
-    webdriver = "./chromedriver"
+    webdriver = "/usr/local/bin/chromedriver"
     chrome_options = Options()
     driver = Chrome(webdriver, options=chrome_options)
-    url = "https://www.grailed.com/"
+    url = "https://www.grailed.com/throat/"
     driver.get(url)
-    input_box = driver.find_element_by_id("globalheader_search")
-
-    # Search Grailed
-    input_box.send_keys(search_term)
-    input_box.send_keys(Keys.RETURN)
-
-    # Error if search bar not found after 10 seconds
-    try:
-        element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "shop"))
-        )
-    except TimeoutException:
-        print("Loading took too much time!")
-
-    # Wait for feed-items to appear
-    try:
-        element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "listing-cover-photo"))
-        )
-    except TimeoutException:
-        print("No listings showed up after 10 seconds!")
+    #input_box = driver.find_element_by_id("globalheader_search")
+#
+    ## Search Grailed
+    #input_box.send_keys(search_term)
+    #input_box.send_keys(Keys.RETURN)
+#
+    ## Error if search bar not found after 10 seconds
+    #try:
+        #element = WebDriverWait(driver, 10).until(
+            #EC.presence_of_element_located((By.ID, "shop"))
+        #)
+    #except TimeoutException:
+        #print("Loading took too much time!")
+#
+    ## Wait for feed-items to appear
+    #try:
+        #element = WebDriverWait(driver, 10).until(
+            #EC.presence_of_element_located((By.CLASS_NAME, "listing-cover-photo"))
+        #)
+    #except TimeoutException:
+        #print("No listings showed up after 10 seconds!")
 
     count = 0
     all_designers = []
@@ -126,7 +132,8 @@ def GrailedScraper(search_term, img_width, img_height, target):
                             )
 
                         try:
-                            urllib.request.urlretrieve(new_url, str(count) + ".jpg")
+                            fullfilename = os.path.join(output_path, str(count) + ".jpg")
+                            urllib.request.urlretrieve(new_url, fullfilename)
                             all_designers.append(curr_designer)
                             count += 1
                             print("Downloaded: " + str(count) + " Target: " + str(target))
